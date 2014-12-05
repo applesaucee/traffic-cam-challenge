@@ -11,20 +11,25 @@
 //you should also write the code to filter the set of markers when the user
 //types a search phrase into the search box
 
-var marker;
-var position;
 
-$(document).ready(function() {   
+
+function onReady() {
     var infoWin = new google.maps.InfoWindow();
 
     var mapOptions = {
         center: {lat: 47.6, lng: -122.3},
         zoom: 12
     };
+
+    var map = new google.maps.Map(document.getElementById('map'), mapOptions);
+
     
     var mapElem = document.getElementById('map');
     
-    var map = new google.maps.Map(mapElem, mapOptions);
+    var marker;
+
+    var position;
+    
     
     $.getJSON('http://data.seattle.gov/resource/65fc-btcc.json')
         .done(function(data) {
@@ -51,9 +56,14 @@ $(document).ready(function() {
         console.log('event listener for marker is working');
     }
     
-//        map.panTo(this.getPosition());
-//        infoWin.open(map, this);
+    google.maps.event.addListener(marker, 'click', onMarkerClick)
 
-});
 
-google.maps.event.addListener(marker, 'click', test());
+} //end onReady
+
+function onMarkerClick() {
+    map.panTo(this.getPosition());
+    infoWin.open(map, this);
+}
+
+$(onReady);
