@@ -11,3 +11,49 @@
 //you should also write the code to filter the set of markers when the user
 //types a search phrase into the search box
 
+var marker;
+var position;
+
+$(document).ready(function() {   
+    var infoWin = new google.maps.InfoWindow();
+
+    var mapOptions = {
+        center: {lat: 47.6, lng: -122.3},
+        zoom: 12
+    };
+    
+    var mapElem = document.getElementById('map');
+    
+    var map = new google.maps.Map(mapElem, mapOptions);
+    
+    $.getJSON('http://data.seattle.gov/resource/65fc-btcc.json')
+        .done(function(data) {
+            //success
+            for (var idx = 0; idx < data.length; idx++) {
+                var mLat = parseFloat(data[idx].location.latitude);
+                var mLng = parseFloat(data[idx].location.longitude);
+                position = {lat: mLat, lng: mLng};
+                marker = new google.maps.Marker({
+                    position: position,
+                    map: map
+                })
+            }
+        }) //end done
+        .fail(function(error) {
+            //error contains error info
+            alert("Failed to get JSON.")
+        })
+        .always(function() {
+            //called on either sucess or error cases
+        })
+    
+    function test() {
+        console.log('event listener for marker is working');
+    }
+    
+//        map.panTo(this.getPosition());
+//        infoWin.open(map, this);
+
+});
+
+google.maps.event.addListener(marker, 'click', test());
