@@ -11,59 +11,76 @@
 //you should also write the code to filter the set of markers when the user
 //types a search phrase into the search box
 
-
-
 function onReady() {
     var infoWin = new google.maps.InfoWindow();
-
     var mapOptions = {
         center: {lat: 47.6, lng: -122.3},
         zoom: 12
     };
-
     var map = new google.maps.Map(document.getElementById('map'), mapOptions);
-
-    
     var mapElem = document.getElementById('map');
-    
     var marker;
-
     var position;
-    
+    var markers = [];
     
     $.getJSON('http://data.seattle.gov/resource/65fc-btcc.json')
         .done(function(data) {
             //success
-            for (var idx = 0; idx < data.length; idx++) {
-                var mLat = parseFloat(data[idx].location.latitude);
-                var mLng = parseFloat(data[idx].location.longitude);
+            var mLat;
+            var mLng;
+            data.forEach(function(data) {
+                mLat = parseFloat(data.location.latitude);
+                mLng = parseFloat(data.location.longitude);
                 position = {lat: mLat, lng: mLng};
                 marker = new google.maps.Marker({
-                    position: position,
-                    map: map
+                         position: position,
+                         map: map,
+                         label: data.cameralabel,
+                         url: data.imageurl.url
                 })
+                markers.push(marker);
+                google.maps.event.addListener(marker, 'click', onMarkerClick)
+
+                function onMarkerClick() {
+                    map.panTo(this.getPosition());
+                    infoWin.setContent(
+                        '<p>'
+                        + this.label + '<br>'
+                        + '<img src="' + this.url 
+                        + '" alt="Live camera image at'
+                        + this.label + '"/>'                        
+                        + '</p>'
+                    );
+                    infoWin.open(map, this);
+                }
+            })
+            
+            google.maps.event.addListener(map, 'click', onMapClick)
+            
+            function onMapClick() {
+                infoWin.close();
             }
+            
+            $('#search').bind('search keyup', function() {
+                var searchTxt = this.value.toLowerCase();
+                var compare;
+                markers.forEach(function(markers) {
+                    compare = markers.label.toLowerCase();
+                    if (compare.indexOf(searchTxt) == -1) {
+                        markers.setMap(null);
+                    }  
+                    if (searchTxt == '') {
+                        markers.setMap(map);
+                    }
+                })
+            });
+        
         }) //end done
         .fail(function(error) {
-            //error contains error info
             alert("Failed to get JSON.")
         })
         .always(function() {
-            //called on either sucess or error cases
         })
-    
-    function test() {
-        console.log('event listener for marker is working');
-    }
-    
-    google.maps.event.addListener(marker, 'click', onMarkerClick)
-
-
 } //end onReady
-
-function onMarkerClick() {
-    map.panTo(this.getPosition());
-    infoWin.open(map, this);
-}
 
 $(onReady);
